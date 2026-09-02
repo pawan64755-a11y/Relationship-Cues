@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dabwali Daily News — पोस्ट जेनरेटर</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:ital@0;1&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Baskervville:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --paper:#FBFAF7;
+    --ink:#1A1A1A;
+    --maroon:#7A1F1F;
+    --maroon-deep:#5C1616;
+    --rule:#1A1A1A;
+    --muted:#5c5c5c;
+    --gold:#B08D3E;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:#EDEAE2;
+    font-family:'Noto Sans Devanagari','Baskervville',serif;
+    color:var(--ink);
+  }
+
+  .app{
+    max-width:1180px;
+    margin:0 auto;
+    padding:20px 16px 60px;
+  }
+
+  .app-header{
+    text-align:center;
+    margin-bottom:22px;
+    padding-top:6px;
+  }
+  .app-header h1{
+    font-family:'Baskervville', serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:26px;
+    margin:0 0 4px;
+    color:var(--maroon-deep);
+    letter-spacing:.3px;
+  }
+  .app-header p{
+    margin:0;
+    font-size:13px;
+    color:var(--muted);
+  }
+
+  .workspace{
+    display:grid;
+    grid-template-columns: minmax(280px, 420px) 1fr;
+    gap:28px;
+    align-items:start;
+  }
+
+  @media (max-width: 860px){
+    .workspace{
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ---- FORM PANEL ---- */
+  .panel{
+    background:#fff;
+    border:1px solid #ddd8ca;
+    border-radius:10px;
+    padding:20px;
+  }
+  .panel h2{
+    font-size:15px;
+    margin:0 0 14px;
+    color:var(--maroon-deep);
+    font-family:'Noto Sans Devanagari',sans-serif;
+    font-weight:700;
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:#444;
+    margin-bottom:6px;
+  }
+  .field textarea, .field input[type=text]{
+    width:100%;
+    font-family:'Noto Sans Devanagari',sans-serif;
+    font-size:14px;
+    padding:10px 11px;
+    border:1px solid #cfc9b8;
+    border-radius:7px;
+    resize:vertical;
+    background:#FDFCFA;
+    color:var(--ink);
+  }
+  .field textarea:focus, .field input:focus{
+    outline:none;
+    border-color:var(--maroon);
+  }
+  #headlineInput{min-height:54px;}
+  #bodyInput{min-height:150px;}
+
+  .hint{font-size:11px;color:#8a8a8a;margin-top:5px;}
+
+  .field-row{display:flex; gap:10px;}
+  .field-row .field{flex:1;}
+
+  select{
+    font-family:'Noto Sans Devanagari',sans-serif;
+    font-size:13px;
+    padding:7px 9px;
+    border-radius:6px;
+    border:1px solid #cfc9b8;
+    background:#FDFCFA;
+  }
+
+  .btn{
+    width:100%;
+    margin-top:6px;
+    padding:13px;
+    border:none;
+    border-radius:8px;
+    background:var(--maroon);
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+    font-family:'Noto Sans Devanagari',sans-serif;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .btn:hover{background:var(--maroon-deep);}
+  .btn:active{transform:translateY(1px);}
+  .btn.secondary{
+    background:#2b2b2b;
+  }
+  .btn.secondary:hover{background:#000;}
+
+  /* ---- PREVIEW PANEL ---- */
+  .preview-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+  }
+
+  .card-scaler{
+    width:100%;
+    max-width:420px;
+    aspect-ratio: 1/1;
+  }
+
+  #card{
+    width:1080px;
+    height:1080px;
+    transform-origin: top left;
+    background:var(--paper);
+    position:relative;
+    overflow:hidden;
+    border:1px solid #e2ddce;
+  }
+
+  /* subtle paper texture via layered gradients */
+  #card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(0,0,0,0.015) 0, transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(0,0,0,0.015) 0, transparent 40%);
+    pointer-events:none;
+  }
+
+  /* decorative outer frame so the square doesn't read as empty */
+  #card::after{
+    content:"";
+    position:absolute;
+    inset:22px;
+    border:1.5px solid #d8d2c0;
+    pointer-events:none;
+  }
+
+  .card-inner{
+    position:relative;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    padding: 44px 54px 36px;
+  }
+
+  /* large decorative quotation mark for visual richness behind headline */
+  .deco-quote{
+    position:absolute;
+    left:36px;
+    top:225px;
+    font-family:'Baskervville', serif;
+    font-size:280px;
+    line-height:1;
+    color:var(--maroon);
+    opacity:0.06;
+    pointer-events:none;
+    user-select:none;
+    z-index:0;
+  }
+
+  /* big soft watermark icon bottom-right for visual balance */
+  .deco-icon{
+    position:absolute;
+    right:0px;
+    bottom:70px;
+    font-size:280px;
+    opacity:0.05;
+    pointer-events:none;
+    user-select:none;
+    line-height:1;
+    z-index:0;
+  }
+
+  /* Masthead */
+  .masthead{
+    text-align:center;
+    padding-bottom:22px;
+    border-bottom: 4px double var(--rule);
+    margin-bottom:8px;
+  }
+  .masthead .brand{
+    font-family:'Baskervville', serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:58px;
+    color:var(--maroon-deep);
+    letter-spacing:.5px;
+    line-height:1;
+    margin:0;
+  }
+  .masthead .tagline{
+    margin-top:10px;
+    font-family:'Noto Sans Devanagari',sans-serif;
+    font-size:18px;
+    color:#3a3a3a;
+    letter-spacing:.5px;
+  }
+  .masthead .meta-line{
+    margin-top:14px;
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+    color:var(--muted);
+    font-family:'Noto Sans Devanagari',sans-serif;
+    border-top:1px solid #d8d2c0;
+    padding-top:10px;
+  }
+  .masthead .meta-line span:first-child{font-weight:600; color:var(--ink);}
+
+  /* Content */
+  .content{
+    flex:1;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding: 30px 0 8px;
+    min-height:0;
+    z-index:1;
+  }
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    align-self:flex-start;
+    background:var(--maroon-deep);
+    color:#fff;
+    font-family:'Noto Sans Devanagari',sans-serif;
+    font-weight:700;
+    font-size:17px;
+    padding:9px 20px;
+    border-radius:2px;
+    margin-bottom:30px;
+    letter-spacing:.5px;
+  }
+
+  #headlineOut{
+    font-family:'Noto Sans Devanagari',sans-serif;
+    font-weight:800;
+    color:var(--ink);
+    line-height:1.26;
+    margin:0 0 28px;
+    font-size:64px;
+    word-break:break-word;
+    min-height:1em;
+  }
+  #headlineOut:empty::before{
+    content:"हेडलाइन यहाँ दिखेगी";
+    color:#c9c2ae;
+    font-weight:700;
+  }
+
+  .divider-small{
+    width:80px;
+    height:5px;
+    background:var(--maroon);
+    margin-bottom:28px;
+  }
+
+  #bodyOut{
+    font-family:'Noto Sans Devanagari',sans-serif;
+    font-weight:400;
+    color:#2a2a2a;
+    line-height:1.6;
+    font-size:40px;
+    white-space:pre-wrap;
+    word-break:break-word;
+    min-height:1em;
+  }
+  #bodyOut:empty::before{
+    content:"समरी यहाँ दिखेगी";
+    color:#c9c2ae;
+  }
+
+  /* Footer */
+  .card-footer{
+    border-top: 2px solid var(--rule);
+    padding-top:16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:'Noto Sans Devanagari',sans-serif;
+  }
+  .card-footer .fbrand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:700;
+    font-size:19px;
+    color:var(--maroon-deep);
+  }
+  .card-footer .fbrand .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--maroon);
+    display:inline-block;
+  }
+  .card-footer .fpage{
+    font-size:14px;
+    color:var(--muted);
+  }
+
+  .status-msg{
+    font-size:12.5px;
+    color:#8a8a8a;
+    min-height:16px;
+  }
+
+  footer.credits{
+    text-align:center;
+    margin-top:40px;
+    font-size:11.5px;
+    color:#aaa;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="app-header">
+    <h1>Dabwali Daily News — पोस्ट जेनरेटर</h1>
+    <p>एक खबर चुनें, टाइप करें और Facebook के लिए तैयार 4:5 इमेज डाउनलोड करें</p>
+  </div>
+
+  <div class="workspace">
+
+    <!-- FORM -->
+    <div class="panel">
+      <h2>खबर की जानकारी भरें</h2>
+
+      <div class="field">
+        <label for="headlineInput">हेडलाइन</label>
+        <textarea id="headlineInput" placeholder="जैसे: बाइक-ट्रैक्टर टक्कर में युवक की मौत"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="bodyInput">समरी (2-3 लाइन)</label>
+        <textarea id="bodyInput" placeholder="खबर की संक्षिप्त जानकारी यहाँ लिखें..."></textarea>
+        <div class="hint">बड़ी समरी होने पर फॉन्ट अपने आप एडजस्ट हो जाएगा</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="dateInput">तारीख़</label>
+          <input type="text" id="dateInput" value="">
+        </div>
+        <div class="field">
+          <label for="editionInput">एडिशन/पेज</label>
+          <input type="text" id="editionInput" value="डबवाली एडिशन">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="categorySelect">समाचार श्रेणी (आइकॉन तय करेगी)</label>
+        <select id="categorySelect" style="width:100%;">
+          <option value="दुर्घटना|🚧">🚧 दुर्घटना</option>
+          <option value="अपराध|⚖️">⚖️ अपराध</option>
+          <option value="राजनीति|🏛️">🏛️ राजनीति</option>
+          <option value="सामाजिक|🤝">🤝 सामाजिक</option>
+          <option value="शिक्षा|🎓">🎓 शिक्षा</option>
+          <option value="स्वास्थ्य|🏥">🏥 स्वास्थ्य</option>
+          <option value="ताज़ा खबर|📰" selected>📰 ताज़ा खबर</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="tagInput">बैज टेक्स्ट (चाहें तो बदलें)</label>
+        <input type="text" id="tagInput" value="ताज़ा खबर">
+      </div>
+
+      <button class="btn" id="renderBtn">प्रीव्यू अपडेट करें</button>
+      <button class="btn secondary" id="downloadBtn">📥 इमेज डाउनलोड करें (4:5)</button>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-wrap">
+      <div class="card-scaler" id="cardScaler">
+        <div id="card">
+          <div class="card-inner">
+
+            <div class="masthead">
+              <div class="brand">Dabwali Daily News</div>
+              <div class="tagline">डबवाली की आवाज़, हर खबर आपके साथ</div>
+              <div class="meta-line">
+                <span id="editionOut">डबवाली एडिशन</span>
+                <span id="dateOut">2 सितम्बर 2026</span>
+              </div>
+            </div>
+
+            <div class="deco-quote">"</div>
+            <div class="deco-icon" id="decoIcon">📰</div>
+
+            <div class="content">
+              <div class="eyebrow"><span id="eyebrowIcon">📰</span> <span id="tagOut">ताज़ा खबर</span></div>
+              <h2 id="headlineOut"></h2>
+              <div class="divider-small"></div>
+              <p id="bodyOut"></p>
+            </div>
+
+            <div class="card-footer">
+              <div class="fbrand"><span class="dot"></span>Dabwali Daily News</div>
+              <div class="fpage">facebook.com/DabwaliDailyNews</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="credits">Dabwali Daily News · Local news post generator</footer>
+</div>
+
+<script>
+const CARD_W = 1080, CARD_H = 1080;
+
+const headlineInput = document.getElementById('headlineInput');
+const bodyInput = document.getElementById('bodyInput');
+const dateInput = document.getElementById('dateInput');
+const editionInput = document.getElementById('editionInput');
+const tagInput = document.getElementById('tagInput');
+const categorySelect = document.getElementById('categorySelect');
+
+const headlineOut = document.getElementById('headlineOut');
+const bodyOut = document.getElementById('bodyOut');
+const dateOut = document.getElementById('dateOut');
+const editionOut = document.getElementById('editionOut');
+const tagOut = document.getElementById('tagOut');
+const eyebrowIcon = document.getElementById('eyebrowIcon');
+const decoIcon = document.getElementById('decoIcon');
+
+const card = document.getElementById('card');
+const cardScaler = document.getElementById('cardScaler');
+const statusMsg = document.getElementById('statusMsg');
+
+// Set today's date in Hindi-friendly format by default
+function setDefaultDate(){
+  const months = ["जनवरी","फ़रवरी","मार्च","अप्रैल","मई","जून","जुलाई","अगस्त","सितम्बर","अक्टूबर","नवम्बर","दिसम्बर"];
+  const d = new Date();
+  const str = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  dateInput.value = str;
+}
+setDefaultDate();
+
+// When category changes, auto-fill the badge text + icon (user can still edit tag text)
+categorySelect.addEventListener('change', ()=>{
+  const [label, icon] = categorySelect.value.split('|');
+  tagInput.value = label;
+  eyebrowIcon.textContent = icon;
+  decoIcon.textContent = icon;
+  render();
+});
+
+function scaleCard(){
+  const wrapWidth = cardScaler.getBoundingClientRect().width;
+  const scale = wrapWidth / CARD_W;
+  card.style.transform = `scale(${scale})`;
+  cardScaler.style.height = (CARD_H * scale) + 'px';
+}
+
+// Card is fixed at 1080x1080, so the ".content" box between masthead and
+// footer has a FIXED area. We shrink font sizes only as much as needed to
+// fit inside that fixed area, but never below a readable minimum. Max sizes
+// are generous so short news stories still visually fill the square.
+const HEADLINE_MAX = 64, HEADLINE_MIN = 38;
+const BODY_MAX = 40, BODY_MIN = 24;
+
+function fitText(){
+  headlineOut.style.fontSize = HEADLINE_MAX + 'px';
+  bodyOut.style.fontSize = BODY_MAX + 'px';
+
+  const content = document.querySelector('.content');
+
+  function overflowing(){
+    // small buffer to avoid pixel-rounding false positives
+    return content.scrollHeight > content.clientHeight + 2;
+  }
+
+  let headlineSize = HEADLINE_MAX;
+  let bodySize = BODY_MAX;
+  let guard = 0;
+
+  while(overflowing() && guard < 60){
+    let shrunk = false;
+    if(bodySize > BODY_MIN){
+      bodySize -= 1;
+      bodyOut.style.fontSize = bodySize + 'px';
+      shrunk = true;
+    }
+    if(headlineSize > HEADLINE_MIN && guard % 2 === 0){
+      headlineSize -= 1;
+      headlineOut.style.fontSize = headlineSize + 'px';
+      shrunk = true;
+    }
+    guard++;
+    if(!shrunk) break; // hit both minimums, stop even if still overflowing
+  }
+}
+
+function render(){
+  headlineOut.textContent = headlineInput.value.trim();
+  bodyOut.textContent = bodyInput.value.trim();
+  dateOut.textContent = dateInput.value.trim() || '';
+  editionOut.textContent = editionInput.value.trim() || 'डबवाली एडिशन';
+  tagOut.textContent = tagInput.value.trim() || 'ताज़ा खबर';
+
+  // allow layout to settle before measuring
+  requestAnimationFrame(()=>{
+    fitText();
+  });
+}
+
+document.getElementById('renderBtn').addEventListener('click', render);
+[headlineInput, bodyInput, dateInput, editionInput, tagInput].forEach(el=>{
+  el.addEventListener('input', ()=>{ render(); });
+});
+
+document.getElementById('downloadBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('downloadBtn');
+  btn.disabled = true;
+  statusMsg.textContent = 'इमेज तैयार हो रही है...';
+
+  // Render at full resolution regardless of current on-screen scale
+  const prevTransform = card.style.transform;
+  card.style.transform = 'none';
+
+  try{
+    const canvas = await html2canvas(card, {
+      width: CARD_W,
+      height: CARD_H,
+      scale: 2,
+      backgroundColor: '#FBFAF7',
+      useCORS: true
+    });
+    const link = document.createElement('a');
+    const safeName = (headlineInput.value.trim() || 'news').slice(0,40).replace(/[^a-zA-Z0-9\u0900-\u097F\s]/g,'').trim().replace(/\s+/g,'-');
+    link.download = `dabwali-daily-news-${safeName || 'post'}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    statusMsg.textContent = '✅ इमेज डाउनलोड हो गई।';
+  }catch(err){
+    console.error(err);
+    statusMsg.textContent = '⚠️ कुछ गड़बड़ हुई, दोबारा कोशिश करें।';
+  }finally{
+    card.style.transform = prevTransform;
+    btn.disabled = false;
+    setTimeout(()=>{ statusMsg.textContent=''; }, 4000);
+  }
+});
+
+window.addEventListener('resize', scaleCard);
+window.addEventListener('load', ()=>{
+  scaleCard();
+  render();
+});
+</script>
+
+</body>
+</html>
