@@ -1,687 +1,649 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dabwali Daily News — पोस्ट जेनरेटर</title>
+<title>Relationship Cues — Carousel & Story Maker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:ital@0;1&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Baskervville:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root{
-    --paper:#FBFAF7;
-    --ink:#1A1A1A;
-    --maroon:#7A1F1F;
-    --maroon-deep:#5C1616;
-    --rule:#1A1A1A;
-    --muted:#5c5c5c;
-    --gold:#B08D3E;
-
-    /* TV news broadcast palette — used only inside the generated card */
-    --tv-bg-1:#0A0F1F;
-    --tv-bg-2:#132241;
-    --tv-red:#E4162A;
-    --tv-red-deep:#8F0D18;
-    --tv-gold:#FFC53D;
-    --tv-ink:#F5F7FB;
-    --tv-muted:#93A0C4;
+    --ink-2:#1e1b24;
+    --cream:#f6f3ee;
+    --fog:#9b96a3;
+    --hair:rgba(246,243,238,0.14);
+    --ig1:#4f5bd5;
+    --ig2:#962fbf;
+    --ig3:#d62976;
+    --ig4:#fa7e1e;
+    --ig5:#feda75;
+    --ig-gradient: linear-gradient(135deg, var(--ig1) 0%, var(--ig2) 28%, var(--ig3) 52%, var(--ig4) 74%, var(--ig5) 100%);
+    --accent:#d62976;
   }
-
   *{box-sizing:border-box;}
-
-  html,body{
+  body{
     margin:0;
-    padding:0;
-    background:#EDEAE2;
-    font-family:'Noto Sans Devanagari','Baskervville',serif;
-    color:var(--ink);
+    font-family:'Manrope',sans-serif;
+    background:#0b0a0e;
+    color:var(--cream);
+    min-height:100vh;
   }
-
-  .app{
-    max-width:1180px;
+  .wrap{
+    max-width:880px;
     margin:0 auto;
-    padding:20px 16px 60px;
+    padding:48px 24px 96px;
   }
+  header{margin-bottom:32px;}
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:clamp(28px,4vw,40px);
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  p.sub{color:var(--fog);margin:0;font-size:15px;line-height:1.6;max-width:60ch;}
 
-  .app-header{
-    text-align:center;
-    margin-bottom:22px;
-    padding-top:6px;
-  }
-  .app-header h1{
-    font-family:'Baskervville', serif;
-    font-style:italic;
-    font-weight:400;
-    font-size:26px;
-    margin:0 0 4px;
-    color:var(--maroon-deep);
-    letter-spacing:.3px;
-  }
-  .app-header p{
-    margin:0;
-    font-size:13px;
-    color:var(--muted);
-  }
-
-  .workspace{
-    display:grid;
-    grid-template-columns: minmax(280px, 420px) 1fr;
-    gap:28px;
-    align-items:start;
-  }
-
-  @media (max-width: 860px){
-    .workspace{
-      grid-template-columns: 1fr;
-    }
-  }
-
-  /* ---- FORM PANEL ---- */
   .panel{
-    background:#fff;
-    border:1px solid #ddd8ca;
-    border-radius:10px;
-    padding:20px;
+    background:var(--ink-2);
+    border:1px solid var(--hair);
+    border-radius:16px;
+    padding:24px;
+    margin-top:28px;
   }
-  .panel h2{
-    font-size:15px;
-    margin:0 0 14px;
-    color:var(--maroon-deep);
-    font-family:'Noto Sans Devanagari',sans-serif;
-    font-weight:700;
-  }
-  .field{margin-bottom:16px;}
-  .field label{
+  label{
     display:block;
-    font-size:12.5px;
-    font-weight:600;
-    color:#444;
-    margin-bottom:6px;
-  }
-  .field textarea, .field input[type=text]{
-    width:100%;
-    font-family:'Noto Sans Devanagari',sans-serif;
-    font-size:14px;
-    padding:10px 11px;
-    border:1px solid #cfc9b8;
-    border-radius:7px;
-    resize:vertical;
-    background:#FDFCFA;
-    color:var(--ink);
-  }
-  .field textarea:focus, .field input:focus{
-    outline:none;
-    border-color:var(--maroon);
-  }
-  #headlineInput{min-height:54px;}
-  #bodyInput{min-height:150px;}
-
-  .hint{font-size:11px;color:#8a8a8a;margin-top:5px;}
-
-  .field-row{display:flex; gap:10px;}
-  .field-row .field{flex:1;}
-
-  select{
-    font-family:'Noto Sans Devanagari',sans-serif;
     font-size:13px;
-    padding:7px 9px;
-    border-radius:6px;
-    border:1px solid #cfc9b8;
-    background:#FDFCFA;
-  }
-
-  .btn{
-    width:100%;
-    margin-top:6px;
-    padding:13px;
-    border:none;
-    border-radius:8px;
-    background:var(--maroon);
-    color:#fff;
-    font-size:15px;
     font-weight:700;
-    font-family:'Noto Sans Devanagari',sans-serif;
-    cursor:pointer;
-    transition:background .15s ease;
-  }
-  .btn:hover{background:var(--maroon-deep);}
-  .btn:active{transform:translateY(1px);}
-  .btn.secondary{
-    background:#2b2b2b;
-  }
-  .btn.secondary:hover{background:#000;}
-
-  /* ---- PREVIEW PANEL ---- */
-  .preview-wrap{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:16px;
-  }
-
-  .card-scaler{
-    width:100%;
-    max-width:420px;
-    aspect-ratio: 1/1;
-  }
-
-  #card{
-    width:1080px;
-    height:1080px;
-    transform-origin: top left;
-    background:
-      radial-gradient(circle at 80% 8%, rgba(228,22,42,0.20) 0, transparent 38%),
-      linear-gradient(155deg, var(--tv-bg-2) 0%, var(--tv-bg-1) 55%, #05070E 100%);
-    position:relative;
-    overflow:hidden;
-    border:1px solid #000;
-  }
-
-  /* faint scanline / broadcast-grid texture */
-  #card::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background-image:
-      repeating-linear-gradient(180deg, rgba(255,255,255,0.018) 0px, rgba(255,255,255,0.018) 1px, transparent 1px, transparent 4px),
-      radial-gradient(circle at 12% 92%, rgba(255,197,61,0.08) 0, transparent 42%);
-    pointer-events:none;
-  }
-
-  /* corner "breaking" flag ribbon, the one bold accent of the design */
-  #card::after{
-    content:"";
-    position:absolute;
-    top:-140px;
-    right:-140px;
-    width:340px;
-    height:340px;
-    background:linear-gradient(135deg, var(--tv-red) 0%, var(--tv-red-deep) 100%);
-    transform:rotate(45deg);
-    box-shadow:0 0 60px rgba(228,22,42,0.35);
-    pointer-events:none;
-  }
-
-  .card-inner{
-    position:relative;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    padding: 44px 54px 36px;
-  }
-
-  /* soft studio-light glow behind the headline, instead of a paper quote mark */
-  .deco-quote{
-    position:absolute;
-    left:50%;
-    top:420px;
-    width:900px;
-    height:520px;
-    transform:translateX(-50%);
-    background:radial-gradient(ellipse at center, rgba(228,22,42,0.16) 0%, transparent 65%);
-    font-size:0;
-    color:transparent;
-    pointer-events:none;
-    user-select:none;
-    z-index:0;
-  }
-
-  /* big soft watermark icon bottom-right for visual balance */
-  .deco-icon{
-    position:absolute;
-    right:10px;
-    bottom:90px;
-    font-size:260px;
-    opacity:0.06;
-    filter:grayscale(1) brightness(3);
-    pointer-events:none;
-    user-select:none;
-    line-height:1;
-    z-index:0;
-  }
-
-  /* Masthead — TV channel identity block */
-  .masthead{
-    position:relative;
-    z-index:1;
-    text-align:center;
-    padding-top:6px;
-    padding-bottom:20px;
-    border-bottom: 3px solid var(--tv-red);
+    letter-spacing:.03em;
+    color:var(--fog);
     margin-bottom:8px;
   }
-  .masthead .brand{
-    font-family:'Noto Sans Devanagari',sans-serif;
-    font-style:normal;
-    font-weight:800;
-    font-size:52px;
-    color:var(--tv-ink);
-    letter-spacing:.5px;
-    line-height:1;
-    margin:0;
-    text-shadow:0 2px 18px rgba(228,22,42,0.35);
+  textarea, input[type=text]{
+    width:100%;
+    background:#0f0d13;
+    border:1px solid var(--hair);
+    color:var(--cream);
+    border-radius:10px;
+    padding:14px;
+    font-family:'Manrope',sans-serif;
+    font-size:14.5px;
+    line-height:1.6;
+    resize:vertical;
   }
-  .masthead .brand span{
-    color:var(--tv-gold);
+  textarea{min-height:160px;}
+  #carouselText{min-height:200px;}
+  .row{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;}
+  .row > div{flex:1;min-width:220px;}
+  .placeholder-note{
+    font-size:12.5px;
+    color:var(--fog);
+    margin-top:8px;
+    line-height:1.5;
   }
-  .masthead .tagline{
-    margin-top:10px;
-    font-family:'Noto Sans Devanagari',sans-serif;
-    font-size:17px;
-    font-weight:500;
-    color:var(--tv-muted);
-    letter-spacing:.5px;
+  .btn{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    font-family:'Manrope',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    padding:13px 22px;
+    border-radius:999px;
+    transition:transform .15s ease, opacity .15s ease;
   }
-  .masthead .meta-line{
-    margin-top:14px;
-    display:flex;
-    justify-content:space-between;
-    font-size:14px;
-    font-weight:600;
-    color:var(--tv-muted);
-    font-family:'Noto Sans Devanagari',sans-serif;
-    border-top:1px solid rgba(147,160,196,0.25);
-    padding-top:10px;
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{
+    background:var(--ig-gradient);
+    color:#fff;
   }
-  .masthead .meta-line span:first-child{font-weight:700; color:var(--tv-gold);}
+  .btn-primary:hover{opacity:.92;}
+  .btn-ghost{
+    background:transparent;
+    color:var(--cream);
+    border:1px solid var(--hair);
+  }
+  .btn-ghost:hover{border-color:var(--accent);}
+  .btn[disabled]{opacity:.4;cursor:not-allowed;}
+  .actions{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .status{font-size:13px;color:var(--fog);}
 
-  /* Content */
-  .content{
-    flex:1;
+  #error{
+    display:none;
+    background:rgba(214,41,118,0.14);
+    border:1px solid var(--accent);
+    color:#f2a9c4;
+    padding:12px 16px;
+    border-radius:10px;
+    font-size:13.5px;
+    margin-top:16px;
+  }
+
+  .theme-note{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:10px;
+    padding:10px 14px;
+    border:1px solid var(--hair);
+    border-radius:10px;
+    background:#0f0d13;
+  }
+  .theme-note .swatch{
+    width:36px;height:36px;border-radius:8px;flex-shrink:0;
+    background:var(--ig-gradient);
+  }
+  .theme-note .txt{font-size:13px;color:var(--fog);}
+  .theme-note .txt b{color:var(--cream);}
+
+  .preview-section{margin-top:40px;}
+  .preview-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:20px;
+    margin-top:20px;
+  }
+  .preview-card{
+    background:var(--ink-2);
+    border:1px solid var(--hair);
+    border-radius:14px;
+    padding:14px;
+    text-align:center;
+  }
+  .thumb-frame{
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:8px;
+    overflow:hidden;
+    margin-bottom:10px;
+    border:1px solid var(--hair);
+  }
+  .thumb-frame > div{
+    transform-origin:top left;
+  }
+  .story-frame{
+    aspect-ratio:9/16;
+    max-width:260px;
+    margin:0 auto 14px;
+  }
+  .preview-card .dl-single{
+    width:100%;
+    font-size:12.5px;
+    padding:8px 10px;
+  }
+
+  /* ---- Carousel slide template (rendered at real 1080x1080, scaled for preview) ---- */
+  .slide{
+    width:1080px;
+    height:1080px;
     position:relative;
     display:flex;
     flex-direction:column;
-    justify-content:center;
-    padding: 30px 0 8px;
-    min-height:0;
-    z-index:1;
+    justify-content:space-between;
+    padding:80px 84px 60px;
+    font-family:'Manrope',sans-serif;
+    color:var(--cream);
+    overflow:hidden;
   }
-
-  .eyebrow{
-    display:inline-flex;
-    align-items:center;
-    gap:9px;
-    align-self:flex-start;
-    background:linear-gradient(90deg, var(--tv-red) 0%, var(--tv-red-deep) 100%);
-    color:#fff;
-    font-family:'Noto Sans Devanagari',sans-serif;
-    font-weight:800;
-    font-size:17px;
-    padding:10px 22px 10px 18px;
-    border-radius:3px;
-    margin-bottom:30px;
-    letter-spacing:.5px;
-    clip-path:polygon(0 0, 100% 0, 96% 100%, 0% 100%);
-    box-shadow:0 4px 16px rgba(228,22,42,0.3);
+  .slide-gradbar{
+    position:absolute;
+    top:0;left:0;right:0;
+    height:10px;
+    background:var(--ig-gradient);
+    z-index:3;
   }
-
-  #headlineOut{
-    font-family:'Noto Sans Devanagari',sans-serif;
-    font-weight:800;
-    color:var(--tv-ink);
-    line-height:1.26;
-    margin:0 0 28px;
-    font-size:64px;
-    word-break:break-word;
-    min-height:1em;
-    text-shadow:0 2px 24px rgba(0,0,0,0.4);
+  .slide-top{display:flex;align-items:center;justify-content:space-between;}
+  .slide-handle{
+    font-size:22px;
+    color:var(--fog);
+    font-weight:600;
   }
-  #headlineOut:empty::before{
-    content:"हेडलाइन यहाँ दिखेगी";
-    color:#5a6584;
-    font-weight:700;
+  .slide-mark{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:120px;
+    line-height:1;
+    color:rgba(214,41,118,0.18);
+    position:absolute;
+    top:130px;
+    left:80px;
+    user-select:none;
   }
-
-  .divider-small{
-    width:80px;
-    height:5px;
-    background:linear-gradient(90deg, var(--tv-red) 0%, var(--tv-gold) 100%);
-    margin-bottom:28px;
-  }
-
-  #bodyOut{
-    font-family:'Noto Sans Devanagari',sans-serif;
-    font-weight:400;
-    color:#D7DCEC;
-    line-height:1.6;
-    font-size:40px;
-    white-space:pre-wrap;
-    word-break:break-word;
-    min-height:1em;
-  }
-  #bodyOut:empty::before{
-    content:"समरी यहाँ दिखेगी";
-    color:#5a6584;
-  }
-
-  /* Ticker strip — broadcast-style scrolling headline bar */
-  .ticker-strip{
+  .slide-body{
     position:relative;
-    z-index:1;
+    z-index:2;
+    flex:1;
     display:flex;
     align-items:center;
-    gap:14px;
-    margin-bottom:14px;
-    background:rgba(228,22,42,0.10);
-    border-top:1px solid rgba(228,22,42,0.4);
-    border-bottom:1px solid rgba(228,22,42,0.4);
-    padding:10px 4px;
   }
-  .ticker-label{
-    flex:none;
-    background:var(--tv-red);
-    color:#fff;
-    font-family:'Noto Sans Devanagari',sans-serif;
-    font-weight:800;
-    font-size:14px;
-    letter-spacing:.5px;
-    padding:5px 14px;
-    border-radius:2px;
+  .slide-text{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
   }
-  .ticker-text{
-    font-family:'Noto Sans Devanagari',sans-serif;
+  .tone-hook .slide-text{
+    font-size:72px;
+    line-height:1.12;
+  }
+  .tone-body .slide-text{
+    font-size:54px;
+    line-height:1.28;
+  }
+  .tone-cta .slide-text{
+    font-size:56px;
+    line-height:1.24;
     font-weight:600;
-    font-size:16px;
-    color:var(--tv-gold);
-    letter-spacing:.3px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
   }
-
-  /* Footer — channel lower-third */
-  .card-footer{
-    position:relative;
-    z-index:1;
-    border-top: 2px solid var(--tv-red);
-    padding-top:16px;
+  .cta-box{
+    margin-top:32px;
+    display:inline-flex;
+    align-items:center;
+    gap:14px;
+    padding:20px 32px;
+    border-radius:16px;
+    background:var(--ig-gradient);
+    font-family:'Manrope',sans-serif;
+    font-weight:800;
+    font-size:28px;
+    color:#fff;
+    box-shadow:0 12px 30px rgba(214,41,118,0.35);
+  }
+  .slide-bottom{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    font-family:'Noto Sans Devanagari',sans-serif;
   }
-  .card-footer .fbrand{
+  .dots{display:flex;gap:12px;}
+  .dot{
+    width:12px;height:12px;border-radius:50%;
+    background:rgba(246,243,238,0.25);
+  }
+  .slide-index{
+    font-size:20px;
+    color:var(--fog);
+    font-weight:700;
+    letter-spacing:.05em;
+  }
+  .slide-watermark{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:28px;
+    text-align:center;
+    font-size:18px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:rgba(246,243,238,0.45);
+    z-index:2;
+  }
+
+  /* ---- Story slide template (rendered at real 1080x1920) ---- */
+  .story-slide{
+    width:1080px;
+    height:1920px;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding:160px 100px 110px;
+    font-family:'Manrope',sans-serif;
+    color:#fff;
+    overflow:hidden;
+    background:
+      radial-gradient(120% 60% at 25% 100%, rgba(254,218,117,0.55), transparent 55%),
+      radial-gradient(110% 75% at 100% 0%, rgba(79,91,213,0.55), transparent 55%),
+      var(--ig-gradient);
+  }
+  .story-scrim{
+    position:absolute;
+    inset:0;
+    background:rgba(9,5,16,0.42);
+    z-index:1;
+  }
+  .story-mark{
+    position:relative;
+    z-index:2;
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:150px;
+    line-height:1;
+    color:rgba(255,255,255,0.35);
+    margin-bottom:16px;
+  }
+  .story-body{
+    position:relative;
+    z-index:2;
+    flex:1;
     display:flex;
     align-items:center;
-    gap:9px;
-    font-weight:800;
-    font-size:19px;
-    color:var(--tv-ink);
-  }
-  .card-footer .fbrand .dot{
-    width:9px;height:9px;border-radius:50%;
-    background:var(--tv-red);
-    box-shadow:0 0 8px 2px rgba(228,22,42,0.6);
-    display:inline-block;
-  }
-  .card-footer .fpage{
-    font-size:14px;
-    font-weight:600;
-    color:var(--tv-muted);
-  }
-
-  .status-msg{
-    font-size:12.5px;
-    color:#8a8a8a;
-    min-height:16px;
-  }
-
-  footer.credits{
+    justify-content:center;
     text-align:center;
-    margin-top:40px;
-    font-size:11.5px;
-    color:#aaa;
   }
+  .story-text{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:62px;
+    line-height:1.35;
+    letter-spacing:-0.01em;
+  }
+  .story-bottom{
+    position:relative;
+    z-index:2;
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.92);
+    margin-top:24px;
+  }
+
+  footer{margin-top:60px;color:var(--fog);font-size:12.5px;text-align:center;}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Relationship Cues</div>
+    <h1>Instagram Carousel & Story Maker</h1>
+    <p class="sub">Paste your 7-slide carousel text below to turn it into ready-to-post square images, or paste a single fact to create a story image — all in the Relationship Cues Instagram gradient style.</p>
+  </header>
 
-<div class="app">
-  <div class="app-header">
-    <h1>Dabwali Daily News — पोस्ट जेनरेटर</h1>
-    <p>एक खबर चुनें, टाइप करें और Facebook के लिए तैयार 4:5 इमेज डाउनलोड करें</p>
-  </div>
+  <div class="panel">
+    <div class="eyebrow" style="margin-bottom:16px;">Carousel</div>
+    <label for="handle">Instagram handle (optional — shown small on each slide)</label>
+    <input type="text" id="handle" placeholder="@relationshipcues">
 
-  <div class="workspace">
-
-    <!-- FORM -->
-    <div class="panel">
-      <h2>खबर की जानकारी भरें</h2>
-
-      <div class="field">
-        <label for="headlineInput">हेडलाइन</label>
-        <textarea id="headlineInput" placeholder="जैसे: बाइक-ट्रैक्टर टक्कर में युवक की मौत"></textarea>
-      </div>
-
-      <div class="field">
-        <label for="bodyInput">समरी (2-3 लाइन)</label>
-        <textarea id="bodyInput" placeholder="खबर की संक्षिप्त जानकारी यहाँ लिखें..."></textarea>
-        <div class="hint">बड़ी समरी होने पर फॉन्ट अपने आप एडजस्ट हो जाएगा</div>
-      </div>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="dateInput">तारीख़</label>
-          <input type="text" id="dateInput" value="">
-        </div>
-        <div class="field">
-          <label for="editionInput">एडिशन/पेज</label>
-          <input type="text" id="editionInput" value="डबवाली एडिशन">
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="categorySelect">समाचार श्रेणी (आइकॉन तय करेगी)</label>
-        <select id="categorySelect" style="width:100%;">
-          <option value="दुर्घटना|🚧">🚧 दुर्घटना</option>
-          <option value="अपराध|⚖️">⚖️ अपराध</option>
-          <option value="राजनीति|🏛️">🏛️ राजनीति</option>
-          <option value="सामाजिक|🤝">🤝 सामाजिक</option>
-          <option value="शिक्षा|🎓">🎓 शिक्षा</option>
-          <option value="स्वास्थ्य|🏥">🏥 स्वास्थ्य</option>
-          <option value="ताज़ा खबर|📰" selected>📰 ताज़ा खबर</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="tagInput">बैज टेक्स्ट (चाहें तो बदलें)</label>
-        <input type="text" id="tagInput" value="ताज़ा खबर">
-      </div>
-
-      <button class="btn" id="renderBtn">प्रीव्यू अपडेट करें</button>
-      <button class="btn secondary" id="downloadBtn">📥 इमेज डाउनलोड करें (4:5)</button>
-      <div class="status-msg" id="statusMsg"></div>
-    </div>
-
-    <!-- PREVIEW -->
-    <div class="preview-wrap">
-      <div class="card-scaler" id="cardScaler">
-        <div id="card">
-          <div class="card-inner">
-
-            <div class="masthead">
-              <div class="brand">Dabwali <span>Daily</span> News</div>
-              <div class="tagline">डबवाली की आवाज़, हर खबर आपके साथ</div>
-              <div class="meta-line">
-                <span id="editionOut">डबवाली एडिशन</span>
-                <span id="dateOut">2 सितम्बर 2026</span>
-              </div>
-            </div>
-
-            <div class="deco-quote">"</div>
-            <div class="deco-icon" id="decoIcon">📰</div>
-
-            <div class="content">
-              <div class="eyebrow"><span id="eyebrowIcon">📰</span> <span id="tagOut">ताज़ा खबर</span></div>
-              <h2 id="headlineOut"></h2>
-              <div class="divider-small"></div>
-              <p id="bodyOut"></p>
-            </div>
-
-            <div class="ticker-strip">
-              <span class="ticker-label">🔴 ब्रेकिंग</span>
-              <span class="ticker-text">डबवाली डेली न्यूज़ — स्थानीय खबरें सबसे पहले, सबसे तेज़</span>
-            </div>
-
-            <div class="card-footer">
-              <div class="fbrand"><span class="dot"></span>Dabwali Daily News</div>
-              <div class="fpage">facebook.com/DabwaliDailyNews</div>
-            </div>
-
-          </div>
-        </div>
+    <div style="margin-top:20px;">
+      <label>Theme</label>
+      <div class="theme-note">
+        <div class="swatch"></div>
+        <div class="txt"><b>Instagram Gradient</b> — the only theme, applied automatically to every slide.</div>
       </div>
     </div>
 
+    <div style="margin-top:20px;">
+      <label for="carouselText">Paste your 7-slide carousel text</label>
+      <textarea id="carouselText" placeholder="Slide 1 (Hook): ...
+Slide 2 (Setup): ...
+Slide 3 (Insight 1): ...
+Slide 4 (Insight 2): ...
+Slide 5 (Insight 3): ...
+Slide 6 (Insight 4): ...
+Slide 7 (CTA): ...
+
+Caption suggestion: ... (this line will be ignored)"></textarea>
+      <div class="placeholder-note">Format: "Slide 1 (Hook): text" — the same shape your prompt output uses. Labels like (Hook)/(Setup) are optional; "Slide 1: text" also works.</div>
+    </div>
+
+    <div id="error"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="generateBtn">Generate preview</button>
+      <button class="btn btn-ghost" id="downloadAllBtn" disabled>Download all 7 as ZIP</button>
+      <span class="status" id="statusText"></span>
+    </div>
   </div>
 
-  <footer class="credits">Dabwali Daily News · Local news post generator</footer>
+  <div class="preview-section" id="previewSection" style="display:none;">
+    <div class="eyebrow">Preview</div>
+    <div class="preview-grid" id="previewGrid"></div>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow" style="margin-bottom:16px;">Story</div>
+    <label for="storyText">Paste a single fact, quote, or tip</label>
+    <textarea id="storyText" placeholder="Paste any single relationship fact, quote, or tip here — no special format needed. Just paste the text and create the story."></textarea>
+    <div class="placeholder-note">This is separate from the carousel. Paste one fact and it becomes one 9:16 Instagram Story image.</div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="createStoryBtn">Create story</button>
+      <span class="status" id="storyStatusText"></span>
+    </div>
+
+    <div id="storyPreviewWrap" style="display:none;margin-top:20px;">
+      <div class="thumb-frame story-frame" id="storyThumbFrame"></div>
+      <button class="btn btn-ghost dl-single" id="downloadStoryBtn" style="max-width:260px;margin:0 auto;display:block;">Download story image</button>
+    </div>
+  </div>
+
+  <div id="renderHost" style="position:fixed;top:-99999px;left:-99999px;"></div>
+
+  <footer>To host this on GitHub Pages, save this file as <code>index.html</code> in your repo and enable Pages.</footer>
 </div>
 
 <script>
-const CARD_W = 1080, CARD_H = 1080;
+const TONES = ['tone-hook','tone-body','tone-body','tone-body','tone-body','tone-body','tone-cta'];
+const WATERMARK = 'RELATIONSHIP CUES';
+const GLOW_POS = ['80% 0%','100% 100%','10% 100%','90% 100%','0% 0%','50% 100%','20% 0%'];
 
-const headlineInput = document.getElementById('headlineInput');
-const bodyInput = document.getElementById('bodyInput');
-const dateInput = document.getElementById('dateInput');
-const editionInput = document.getElementById('editionInput');
-const tagInput = document.getElementById('tagInput');
-const categorySelect = document.getElementById('categorySelect');
-
-const headlineOut = document.getElementById('headlineOut');
-const bodyOut = document.getElementById('bodyOut');
-const dateOut = document.getElementById('dateOut');
-const editionOut = document.getElementById('editionOut');
-const tagOut = document.getElementById('tagOut');
-const eyebrowIcon = document.getElementById('eyebrowIcon');
-const decoIcon = document.getElementById('decoIcon');
-
-const card = document.getElementById('card');
-const cardScaler = document.getElementById('cardScaler');
-const statusMsg = document.getElementById('statusMsg');
-
-// Set today's date in Hindi-friendly format by default
-function setDefaultDate(){
-  const months = ["जनवरी","फ़रवरी","मार्च","अप्रैल","मई","जून","जुलाई","अगस्त","सितम्बर","अक्टूबर","नवम्बर","दिसम्बर"];
-  const d = new Date();
-  const str = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  dateInput.value = str;
-}
-setDefaultDate();
-
-// When category changes, auto-fill the badge text + icon (user can still edit tag text)
-categorySelect.addEventListener('change', ()=>{
-  const [label, icon] = categorySelect.value.split('|');
-  tagInput.value = label;
-  eyebrowIcon.textContent = icon;
-  decoIcon.textContent = icon;
-  render();
-});
-
-function scaleCard(){
-  const wrapWidth = cardScaler.getBoundingClientRect().width;
-  const scale = wrapWidth / CARD_W;
-  card.style.transform = `scale(${scale})`;
-  cardScaler.style.height = (CARD_H * scale) + 'px';
+function flipPos(pos){
+  const [x,y] = pos.split(' ').map(v => parseInt(v,10));
+  return `${100-x}% ${100-y}%`;
 }
 
-// Card is fixed at 1080x1080, so the ".content" box between masthead and
-// footer has a FIXED area. We shrink font sizes only as much as needed to
-// fit inside that fixed area, but never below a readable minimum. Max sizes
-// are generous so short news stories still visually fill the square.
-const HEADLINE_MAX = 64, HEADLINE_MIN = 38;
-const BODY_MAX = 40, BODY_MIN = 24;
+function slideBackground(i, tone){
+  const pos = GLOW_POS[i % GLOW_POS.length];
+  const strong = tone !== 'tone-body';
+  const op1 = strong ? 0.35 : 0.18;
+  const op2 = strong ? 0.26 : 0.13;
+  return `radial-gradient(120% 90% at ${pos}, rgba(214,41,118,${op1}), transparent 55%), radial-gradient(100% 70% at ${flipPos(pos)}, rgba(250,126,30,${op2}), transparent 55%), linear-gradient(165deg, #150c1e 0%, #0a0612 100%)`;
+}
 
-function fitText(){
-  headlineOut.style.fontSize = HEADLINE_MAX + 'px';
-  bodyOut.style.fontSize = BODY_MAX + 'px';
+function parseSlides(raw){
+  const lines = raw.split('\n');
+  const slides = [];
+  let current = null;
+  const slideStart = /^\s*slide\s*(\d)\s*(?:\(([^)]*)\))?\s*:\s*(.*)$/i;
+  const captionStart = /^\s*caption/i;
 
-  const content = document.querySelector('.content');
-
-  function overflowing(){
-    // small buffer to avoid pixel-rounding false positives
-    return content.scrollHeight > content.clientHeight + 2;
-  }
-
-  let headlineSize = HEADLINE_MAX;
-  let bodySize = BODY_MAX;
-  let guard = 0;
-
-  while(overflowing() && guard < 60){
-    let shrunk = false;
-    if(bodySize > BODY_MIN){
-      bodySize -= 1;
-      bodyOut.style.fontSize = bodySize + 'px';
-      shrunk = true;
+  for(const line of lines){
+    const capMatch = captionStart.test(line);
+    const m = line.match(slideStart);
+    if(m){
+      if(current) slides.push(current);
+      current = { index: parseInt(m[1],10), label: (m[2]||'').trim(), text: m[3].trim() };
+    } else if(capMatch){
+      if(current) slides.push(current);
+      current = null;
+      break;
+    } else if(current && line.trim() !== ''){
+      current.text += (current.text ? ' ' : '') + line.trim();
     }
-    if(headlineSize > HEADLINE_MIN && guard % 2 === 0){
-      headlineSize -= 1;
-      headlineOut.style.fontSize = headlineSize + 'px';
-      shrunk = true;
-    }
-    guard++;
-    if(!shrunk) break; // hit both minimums, stop even if still overflowing
   }
+  if(current) slides.push(current);
+  slides.sort((a,b)=>a.index-b.index);
+  return slides.slice(0,7);
 }
 
-function render(){
-  headlineOut.textContent = headlineInput.value.trim();
-  bodyOut.textContent = bodyInput.value.trim();
-  dateOut.textContent = dateInput.value.trim() || '';
-  editionOut.textContent = editionInput.value.trim() || 'डबवाली एडिशन';
-  tagOut.textContent = tagInput.value.trim() || 'ताज़ा खबर';
-
-  // allow layout to settle before measuring
-  requestAnimationFrame(()=>{
-    fitText();
-  });
+function escapeHTML(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
 }
 
-document.getElementById('renderBtn').addEventListener('click', render);
-[headlineInput, bodyInput, dateInput, editionInput, tagInput].forEach(el=>{
-  el.addEventListener('input', ()=>{ render(); });
-});
+function buildSlideEl(slide, i, handle){
+  const tone = TONES[i] || 'tone-body';
+  const el = document.createElement('div');
+  el.className = 'slide ' + tone;
+  el.style.background = slideBackground(i, tone);
 
-document.getElementById('downloadBtn').addEventListener('click', async ()=>{
-  const btn = document.getElementById('downloadBtn');
-  btn.disabled = true;
-  statusMsg.textContent = 'इमेज तैयार हो रही है...';
+  const ctaHTML = tone === 'tone-cta'
+    ? `<div class="cta-box">→ Save &amp; Share</div>`
+    : '';
 
-  // Render at full resolution regardless of current on-screen scale
-  const prevTransform = card.style.transform;
-  card.style.transform = 'none';
+  el.innerHTML = `
+    <div class="slide-gradbar"></div>
+    <div class="slide-top" style="justify-content:flex-end;">
+      <div class="slide-handle">${escapeHTML(handle || '')}</div>
+    </div>
+    <div class="slide-mark">${tone === 'tone-hook' ? '“' : (tone === 'tone-cta' ? '↷' : '—')}</div>
+    <div class="slide-body">
+      <div class="slide-text">${escapeHTML(slide.text)}${ctaHTML}</div>
+    </div>
+    <div class="slide-bottom">
+      <div class="dots">
+        ${[0,1,2,3,4,5,6].map(d => `<div class="dot" style="background:${d===i ? 'var(--accent)' : 'rgba(246,243,238,0.25)'}"></div>`).join('')}
+      </div>
+      <div class="slide-index">${String(i+1).padStart(2,'0')} / 07</div>
+    </div>
+    <div class="slide-watermark">${WATERMARK}</div>
+  `;
+  return el;
+}
 
-  try{
-    const canvas = await html2canvas(card, {
-      width: CARD_W,
-      height: CARD_H,
-      scale: 2,
-      backgroundColor: '#0A0F1F',
-      useCORS: true
-    });
-    const link = document.createElement('a');
-    const safeName = (headlineInput.value.trim() || 'news').slice(0,40).replace(/[^a-zA-Z0-9\u0900-\u097F\s]/g,'').trim().replace(/\s+/g,'-');
-    link.download = `dabwali-daily-news-${safeName || 'post'}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    statusMsg.textContent = '✅ इमेज डाउनलोड हो गई।';
-  }catch(err){
-    console.error(err);
-    statusMsg.textContent = '⚠️ कुछ गड़बड़ हुई, दोबारा कोशिश करें।';
-  }finally{
-    card.style.transform = prevTransform;
-    btn.disabled = false;
-    setTimeout(()=>{ statusMsg.textContent=''; }, 4000);
+function buildStoryEl(text){
+  const el = document.createElement('div');
+  el.className = 'story-slide';
+  el.innerHTML = `
+    <div class="story-scrim"></div>
+    <div class="story-mark">“</div>
+    <div class="story-body"><div class="story-text">${escapeHTML(text)}</div></div>
+    <div class="story-bottom">Relationship Cues</div>
+  `;
+  return el;
+}
+
+let renderedCanvases = [];
+
+async function renderAll(){
+  const raw = document.getElementById('carouselText').value;
+  const handle = document.getElementById('handle').value.trim();
+  const errorBox = document.getElementById('error');
+  const statusText = document.getElementById('statusText');
+  errorBox.style.display = 'none';
+
+  const slides = parseSlides(raw);
+  if(slides.length < 7){
+    errorBox.textContent = `Only ${slides.length} slide(s) detected. Please check the format — it should look like "Slide 1 (Hook): text", with all 7 slides included.`;
+    errorBox.style.display = 'block';
+    return;
   }
-});
 
-window.addEventListener('resize', scaleCard);
-window.addEventListener('load', ()=>{
-  scaleCard();
-  render();
-});
+  statusText.textContent = 'Rendering images...';
+  document.getElementById('generateBtn').disabled = true;
+
+  const host = document.getElementById('renderHost');
+  host.innerHTML = '';
+  const previewGrid = document.getElementById('previewGrid');
+  previewGrid.innerHTML = '';
+  renderedCanvases = [];
+
+  for(let i=0;i<7;i++){
+    const slideEl = buildSlideEl(slides[i], i, handle);
+    host.appendChild(slideEl);
+
+    const canvas = await html2canvas(slideEl, { width:1080, height:1080, scale:1, backgroundColor:null });
+    renderedCanvases.push(canvas);
+
+    const card = document.createElement('div');
+    card.className = 'preview-card';
+    const frame = document.createElement('div');
+    frame.className = 'thumb-frame';
+    const scaledWrap = document.createElement('div');
+    scaledWrap.style.width = '1080px';
+    scaledWrap.style.height = '1080px';
+    scaledWrap.style.transform = 'scale(0.185)';
+    scaledWrap.appendChild(canvas);
+    frame.appendChild(scaledWrap);
+    card.appendChild(frame);
+
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'btn btn-ghost dl-single';
+    dlBtn.textContent = `Download slide ${i+1}`;
+    dlBtn.onclick = () => downloadCanvas(canvas, `slide-${i+1}.png`);
+    card.appendChild(dlBtn);
+
+    previewGrid.appendChild(card);
+  }
+
+  document.getElementById('previewSection').style.display = 'block';
+  document.getElementById('downloadAllBtn').disabled = false;
+  document.getElementById('generateBtn').disabled = false;
+  statusText.textContent = '7 slides ready.';
+}
+
+async function createStory(){
+  let raw = document.getElementById('storyText').value.trim();
+  raw = raw.replace(/^\s*story\s*fact\s*:\s*/i, '').replace(/^\[|\]$/g, '').trim();
+  const statusText = document.getElementById('storyStatusText');
+
+  if(!raw){
+    statusText.textContent = 'Please paste a fact first.';
+    return;
+  }
+
+  statusText.textContent = 'Rendering story...';
+  document.getElementById('createStoryBtn').disabled = true;
+
+  const host = document.getElementById('renderHost');
+  const storyEl = buildStoryEl(raw);
+  host.appendChild(storyEl);
+
+  const canvas = await html2canvas(storyEl, { width:1080, height:1920, scale:1, backgroundColor:null });
+  host.removeChild(storyEl);
+
+  const frame = document.getElementById('storyThumbFrame');
+  frame.innerHTML = '';
+  const scaledWrap = document.createElement('div');
+  scaledWrap.style.width = '1080px';
+  scaledWrap.style.height = '1920px';
+  scaledWrap.style.transform = 'scale(0.185)';
+  scaledWrap.appendChild(canvas);
+  frame.appendChild(scaledWrap);
+
+  document.getElementById('storyPreviewWrap').style.display = 'block';
+  document.getElementById('downloadStoryBtn').onclick = () => downloadCanvas(canvas, 'relationship-cues-story.png');
+
+  statusText.textContent = 'Story ready.';
+  document.getElementById('createStoryBtn').disabled = false;
+}
+
+function downloadCanvas(canvas, filename){
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+
+async function downloadAllZip(){
+  if(renderedCanvases.length < 7) return;
+  const statusText = document.getElementById('statusText');
+  statusText.textContent = 'Preparing ZIP...';
+  const zip = new JSZip();
+
+  for(let i=0;i<renderedCanvases.length;i++){
+    const blob = await new Promise(res => renderedCanvases[i].toBlob(res, 'image/png'));
+    zip.file(`slide-${i+1}.png`, blob);
+  }
+
+  const content = await zip.generateAsync({ type:'blob' });
+  const url = URL.createObjectURL(content);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'relationship-cues-carousel.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+  statusText.textContent = 'ZIP downloaded.';
+}
+
+document.getElementById('generateBtn').addEventListener('click', renderAll);
+document.getElementById('downloadAllBtn').addEventListener('click', downloadAllZip);
+document.getElementById('createStoryBtn').addEventListener('click', createStory);
 </script>
-
 </body>
 </html>
