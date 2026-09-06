@@ -413,7 +413,7 @@
   <header>
     <div class="eyebrow">Relationship Cues</div>
     <h1>Instagram Carousel & Story Maker</h1>
-    <p class="sub">Paste one 7-slide carousel text below and it will automatically generate 9 ready-to-post carousel sets — same content, each in its own distinct color theme — with a separate ZIP download per set. Also paste a single fact below to create a story image.</p>
+    <p class="sub">Paste one 7-slide carousel text below and it will automatically generate 3 ready-to-post carousel sets — same content, each in its own distinct color theme — with a separate ZIP download per set. Also paste a single fact below to create a story image.</p>
   </header>
 
   <div class="panel">
@@ -425,7 +425,7 @@
       <label>Themes</label>
       <div class="theme-note">
         <div class="swatch"></div>
-        <div class="txt"><b>9 unique color themes</b> — one distinct gradient/accent per set, applied automatically to the same text. Layout and format stay identical.</div>
+        <div class="txt"><b>3 unique color themes</b> — one distinct gradient/accent per set, applied automatically to the same text. Layout and format stay identical.</div>
       </div>
       <div class="theme-swatch-row" id="themeSwatchRow"></div>
     </div>
@@ -439,19 +439,19 @@ Slide 4 (Insight 2): ...
 Slide 5 (Insight 3): ...
 Slide 6 (Insight 4): ...
 Slide 7 (CTA): ..."></textarea>
-      <div class="placeholder-note">Paste one 7-slide set in "Slide 1 (Hook): text" ... "Slide 7 (CTA): text" format. That single set of text is automatically turned into 9 carousel sets, each rendered in a different color theme — no need to paste it 9 times. "Caption suggestion" lines are ignored.</div>
+      <div class="placeholder-note">Paste one 7-slide set in "Slide 1 (Hook): text" ... "Slide 7 (CTA): text" format. That single set of text is automatically turned into 3 carousel sets, each rendered in a different color theme — no need to paste it 3 times. "Caption suggestion" lines are ignored.</div>
     </div>
 
     <div id="error"></div>
 
     <div class="actions">
-      <button class="btn btn-primary" id="generateBtn">Generate 9 color variations</button>
+      <button class="btn btn-primary" id="generateBtn">Generate 3 color variations</button>
       <span class="status" id="statusText"></span>
     </div>
   </div>
 
   <div class="preview-section" id="previewSection" style="display:none;">
-    <div class="eyebrow">Preview — 9 color variations, 7 slides each</div>
+    <div class="eyebrow">Preview — 3 color variations, 7 slides each</div>
     <div id="batchesContainer"></div>
   </div>
 
@@ -482,17 +482,11 @@ const TONES = ['tone-hook','tone-body','tone-body','tone-body','tone-body','tone
 const WATERMARK = 'RELATIONSHIP CUES';
 const GLOW_POS = ['80% 0%','100% 100%','10% 100%','90% 100%','0% 0%','50% 100%','20% 0%'];
 
-// 9 distinct, professional color themes — one per batch. Layout/format stays identical.
+// 3 distinct, professional color themes — one per batch. Layout/format stays identical.
 const THEMES = [
   { name:'Instagram Gradient', gradient:'linear-gradient(135deg,#4f5bd5 0%,#962fbf 28%,#d62976 52%,#fa7e1e 74%,#feda75 100%)', accentRGB:'214,41,118', secondaryRGB:'250,126,30' },
-  { name:'Sunset Coral',       gradient:'linear-gradient(135deg,#ff6b6b 0%,#f06595 55%,#cc5de8 100%)',                          accentRGB:'255,107,107', secondaryRGB:'240,101,149' },
   { name:'Ocean Blue',         gradient:'linear-gradient(135deg,#0ea5e9 0%,#22d3ee 55%,#38bdf8 100%)',                          accentRGB:'14,165,233',  secondaryRGB:'34,211,238' },
-  { name:'Emerald Green',      gradient:'linear-gradient(135deg,#10b981 0%,#34d399 55%,#6ee7b7 100%)',                          accentRGB:'16,185,129',  secondaryRGB:'52,211,153' },
-  { name:'Royal Purple',       gradient:'linear-gradient(135deg,#8b5cf6 0%,#a78bfa 55%,#c084fc 100%)',                          accentRGB:'139,92,246',  secondaryRGB:'167,139,250' },
-  { name:'Rose Gold',          gradient:'linear-gradient(135deg,#f472b6 0%,#fb923c 55%,#fbbf24 100%)',                          accentRGB:'244,114,182', secondaryRGB:'251,146,60' },
-  { name:'Midnight Indigo',    gradient:'linear-gradient(135deg,#6366f1 0%,#818cf8 55%,#4f46e5 100%)',                          accentRGB:'99,102,241',  secondaryRGB:'129,140,248' },
-  { name:'Golden Amber',       gradient:'linear-gradient(135deg,#f59e0b 0%,#fbbf24 55%,#fde047 100%)',                          accentRGB:'245,158,11',  secondaryRGB:'251,191,36' },
-  { name:'Crimson Berry',      gradient:'linear-gradient(135deg,#e11d48 0%,#be123c 55%,#9f1239 100%)',                          accentRGB:'225,29,72',   secondaryRGB:'190,18,60' }
+  { name:'Emerald Green',      gradient:'linear-gradient(135deg,#10b981 0%,#34d399 55%,#6ee7b7 100%)',                          accentRGB:'16,185,129',  secondaryRGB:'52,211,153' }
 ];
 
 function themeFor(batchIndex){
@@ -640,7 +634,7 @@ async function renderAll(){
   container.innerHTML = '';
   renderedBatches = [];
 
-  for(let setIndex = 1; setIndex <= 9; setIndex++){
+  for(let setIndex = 1; setIndex <= 3; setIndex++){
     const theme = themeFor(setIndex);
     const canvases = [];
 
@@ -694,7 +688,7 @@ async function renderAll(){
 
   document.getElementById('previewSection').style.display = 'block';
   document.getElementById('generateBtn').disabled = false;
-  statusText.textContent = `9 color variations ready — ${9 * 7} images total.`;
+  statusText.textContent = `3 color variations ready — ${3 * 7} images total.`;
 }
 
 async function createStory(){
