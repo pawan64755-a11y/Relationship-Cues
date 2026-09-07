@@ -82,6 +82,42 @@
   }
   textarea{min-height:160px;}
   #carouselText{min-height:200px;}
+  input[type=file]{
+    width:100%;
+    background:#0f0d13;
+    border:1px solid var(--hair);
+    color:var(--cream);
+    border-radius:10px;
+    padding:10px 12px;
+    font-family:'Manrope',sans-serif;
+    font-size:13.5px;
+  }
+  input[type=file]::file-selector-button{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    font-family:'Manrope',sans-serif;
+    font-weight:700;
+    font-size:12.5px;
+    padding:8px 14px;
+    border-radius:999px;
+    background:var(--ig-gradient);
+    color:#fff;
+    margin-right:12px;
+  }
+  .bg-image-preview-wrap{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:10px;
+  }
+  .bg-image-preview-wrap img{
+    width:56px;
+    height:56px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid var(--hair);
+  }
   .row{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;}
   .row > div{flex:1;min-width:220px;}
   .placeholder-note{
@@ -406,6 +442,27 @@
   }
 
   footer{margin-top:60px;color:var(--fog);font-size:12.5px;text-align:center;}
+
+  /* ---- Text stays readable over any uploaded background image ---- */
+  .has-bg-image .slide-text{
+    background:rgba(10,8,16,0.55);
+    padding:26px 32px;
+    border-radius:18px;
+    display:inline-block;
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+  }
+  .has-bg-image .slide-mark{
+    color:rgba(255,255,255,0.28);
+  }
+  .story-slide.has-bg-image .story-text{
+    background:rgba(10,8,16,0.5);
+    padding:30px 36px;
+    border-radius:20px;
+    display:inline-block;
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+  }
 </style>
 </head>
 <body>
@@ -413,7 +470,7 @@
   <header>
     <div class="eyebrow">Relationship Cues</div>
     <h1>Instagram Carousel & Story Maker</h1>
-    <p class="sub">Paste one 7-slide carousel text below and it will automatically generate 3 ready-to-post carousel sets — same content, each in its own distinct color theme — with a separate ZIP download per set. Also paste a single fact below to create a story image.</p>
+    <p class="sub">Paste one 7-slide carousel text below and it will generate one ready-to-post carousel set, plus a ZIP download. Optionally upload your own background image instead of the color theme. Also paste a single fact below to create a story image.</p>
   </header>
 
   <div class="panel">
@@ -422,12 +479,22 @@
     <input type="text" id="handle" placeholder="@relationshipcues">
 
     <div style="margin-top:20px;">
-      <label>Themes</label>
+      <label>Theme</label>
       <div class="theme-note">
         <div class="swatch"></div>
-        <div class="txt"><b>3 unique color themes</b> — one distinct gradient/accent per set, applied automatically to the same text. Layout and format stay identical.</div>
+        <div class="txt"><b>One color theme</b> — applied automatically to your slides. Upload a custom background image below to use that instead of the color theme.</div>
       </div>
       <div class="theme-swatch-row" id="themeSwatchRow"></div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <label for="bgImageUpload">Custom background image (optional)</label>
+      <input type="file" id="bgImageUpload" accept="image/*">
+      <div class="placeholder-note">Upload any image to use as the slide background instead of the color theme. A dark tint is added over the image, and a semi-transparent panel sits behind the text, so your words stay readable on any photo.</div>
+      <div class="bg-image-preview-wrap" id="bgImagePreviewWrap" style="display:none;">
+        <img id="bgImagePreview" alt="Background preview">
+        <button class="btn btn-ghost" id="removeBgImageBtn" style="font-size:12.5px;padding:8px 14px;">Remove image</button>
+      </div>
     </div>
 
     <div style="margin-top:20px;">
@@ -445,13 +512,13 @@ Slide 7 (CTA): ..."></textarea>
     <div id="error"></div>
 
     <div class="actions">
-      <button class="btn btn-primary" id="generateBtn">Generate 3 color variations</button>
+      <button class="btn btn-primary" id="generateBtn">Generate carousel</button>
       <span class="status" id="statusText"></span>
     </div>
   </div>
 
   <div class="preview-section" id="previewSection" style="display:none;">
-    <div class="eyebrow">Preview — 3 color variations, 7 slides each</div>
+    <div class="eyebrow">Preview — 7 slides</div>
     <div id="batchesContainer"></div>
   </div>
 
@@ -482,12 +549,12 @@ const TONES = ['tone-hook','tone-body','tone-body','tone-body','tone-body','tone
 const WATERMARK = 'RELATIONSHIP CUES';
 const GLOW_POS = ['80% 0%','100% 100%','10% 100%','90% 100%','0% 0%','50% 100%','20% 0%'];
 
-// 3 distinct, professional color themes — one per batch. Layout/format stays identical.
+// Single color theme (previously 3 — 2 removed per request). Layout/format stays identical.
 const THEMES = [
-  { name:'Instagram Gradient', gradient:'linear-gradient(135deg,#4f5bd5 0%,#962fbf 28%,#d62976 52%,#fa7e1e 74%,#feda75 100%)', accentRGB:'214,41,118', secondaryRGB:'250,126,30' },
-  { name:'Ocean Blue',         gradient:'linear-gradient(135deg,#0ea5e9 0%,#22d3ee 55%,#38bdf8 100%)',                          accentRGB:'14,165,233',  secondaryRGB:'34,211,238' },
-  { name:'Emerald Green',      gradient:'linear-gradient(135deg,#10b981 0%,#34d399 55%,#6ee7b7 100%)',                          accentRGB:'16,185,129',  secondaryRGB:'52,211,153' }
+  { name:'Instagram Gradient', gradient:'linear-gradient(135deg,#4f5bd5 0%,#962fbf 28%,#d62976 52%,#fa7e1e 74%,#feda75 100%)', accentRGB:'214,41,118', secondaryRGB:'250,126,30' }
 ];
+
+let customBgImage = null; // data URL of user-uploaded background image, or null to use the theme gradient
 
 function themeFor(batchIndex){
   return THEMES[(batchIndex - 1) % THEMES.length];
@@ -499,6 +566,9 @@ function flipPos(pos){
 }
 
 function slideBackground(i, tone, theme){
+  if(customBgImage){
+    return `linear-gradient(rgba(8,6,14,0.5), rgba(8,6,14,0.5)), url("${customBgImage}") center/cover no-repeat`;
+  }
   const pos = GLOW_POS[i % GLOW_POS.length];
   const strong = tone !== 'tone-body';
   const op1 = strong ? 0.35 : 0.18;
@@ -550,7 +620,7 @@ function escapeHTML(str){
 function buildSlideEl(slide, i, handle, theme){
   const tone = TONES[i] || 'tone-body';
   const el = document.createElement('div');
-  el.className = 'slide ' + tone;
+  el.className = 'slide ' + tone + (customBgImage ? ' has-bg-image' : '');
   el.style.background = slideBackground(i, tone, theme);
   el.style.setProperty('--s-gradient', theme.gradient);
   el.style.setProperty('--s-mark', `rgba(${theme.accentRGB},0.18)`);
@@ -582,17 +652,20 @@ function buildSlideEl(slide, i, handle, theme){
 
 function renderThemeSwatchRow(){
   const row = document.getElementById('themeSwatchRow');
-  row.innerHTML = THEMES.map((t, idx) => `
+  row.innerHTML = THEMES.map((t) => `
     <div class="theme-chip">
       <div class="dot-swatch" style="background:${t.gradient}"></div>
-      <div class="chip-label"><b>Set ${idx+1}</b> ${escapeHTML(t.name)}</div>
+      <div class="chip-label"><b>Theme</b> ${escapeHTML(t.name)}</div>
     </div>
   `).join('');
 }
 
 function buildStoryEl(text){
   const el = document.createElement('div');
-  el.className = 'story-slide';
+  el.className = 'story-slide' + (customBgImage ? ' has-bg-image' : '');
+  if(customBgImage){
+    el.style.background = `url("${customBgImage}") center/cover no-repeat`;
+  }
   el.innerHTML = `
     <div class="story-scrim"></div>
     <div class="story-mark">“</div>
@@ -644,9 +717,9 @@ async function renderAll(){
       <div class="batch-header">
         <div class="batch-heading">
           <div class="batch-swatch" style="background:${theme.gradient}"></div>
-          <div class="batch-title">Set ${setIndex}<span>${escapeHTML(theme.name)}</span></div>
+          <div class="batch-title">${escapeHTML(theme.name)}<span>7-slide carousel</span></div>
         </div>
-        <button class="btn btn-primary batch-zip-btn">Download Set ${setIndex} ZIP</button>
+        <button class="btn btn-primary batch-zip-btn">Download ZIP</button>
       </div>
     `;
     const grid = document.createElement('div');
@@ -676,7 +749,7 @@ async function renderAll(){
       const dlBtn = document.createElement('button');
       dlBtn.className = 'btn btn-ghost dl-single';
       dlBtn.textContent = `Download slide ${i+1}`;
-      dlBtn.onclick = () => downloadCanvas(canvas, `set-${setIndex}-slide-${i+1}.png`);
+      dlBtn.onclick = () => downloadCanvas(canvas, `slide-${i+1}.png`);
       card.appendChild(dlBtn);
 
       grid.appendChild(card);
@@ -688,7 +761,7 @@ async function renderAll(){
 
   document.getElementById('previewSection').style.display = 'block';
   document.getElementById('generateBtn').disabled = false;
-  statusText.textContent = `3 color variations ready — ${3 * 7} images total.`;
+  statusText.textContent = `Carousel ready — 7 images total.`;
 }
 
 async function createStory(){
@@ -742,7 +815,7 @@ async function downloadBatchZip(setIndex){
   const batch = renderedBatches.find(b => b.index === setIndex);
   if(!batch || batch.canvases.length < 7) return;
   const statusText = document.getElementById('statusText');
-  statusText.textContent = `Preparing Set ${setIndex} ZIP...`;
+  statusText.textContent = `Preparing ZIP...`;
   const zip = new JSZip();
 
   for(let i=0;i<batch.canvases.length;i++){
@@ -754,14 +827,33 @@ async function downloadBatchZip(setIndex){
   const url = URL.createObjectURL(content);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `relationship-cues-set-${setIndex}.zip`;
+  a.download = `relationship-cues-carousel.zip`;
   a.click();
   URL.revokeObjectURL(url);
-  statusText.textContent = `Set ${setIndex} ZIP downloaded.`;
+  statusText.textContent = `ZIP downloaded.`;
 }
 
 document.getElementById('generateBtn').addEventListener('click', renderAll);
 document.getElementById('createStoryBtn').addEventListener('click', createStory);
+
+document.getElementById('bgImageUpload').addEventListener('change', function(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    customBgImage = ev.target.result;
+    document.getElementById('bgImagePreview').src = customBgImage;
+    document.getElementById('bgImagePreviewWrap').style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('removeBgImageBtn').addEventListener('click', function(){
+  customBgImage = null;
+  document.getElementById('bgImageUpload').value = '';
+  document.getElementById('bgImagePreviewWrap').style.display = 'none';
+});
+
 renderThemeSwatchRow();
 </script>
 </body>
